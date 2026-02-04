@@ -1,4 +1,5 @@
 import express from "express";
+import { BodySchema } from "./sort.body.schema";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,15 @@ app.get("/", (req, res) => {
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+app.post("/sort", (req, res) => {
+  try {
+    BodySchema.parse(req.body);
+    res.json(req.body.sort());
+  } catch (err) {
+    res.sendStatus(400);
+  }
 });
 
 app.listen(PORT, () => {
