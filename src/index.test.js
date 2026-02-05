@@ -2,13 +2,14 @@ import { describe, it, expect } from "vitest";
 import request from "supertest";
 import app from "./index.js";
 import { BodySchema } from "./sort.body.schema.js";
+import { ZodError } from "zod";
 
 // Assertions
 
 async function expectBadRequest(response) {
   await expect(
     BodySchema.parseAsync((await response.request).body)
-  ).rejects.toThrow();
+  ).rejects.toThrow(ZodError);
 
   expect(response.status).toBe(400);
   expect(response.body).toStrictEqual({});
@@ -47,15 +48,18 @@ describe("Sorting endpoint", () => {
     await expectBadRequest(response);
   });
 
+  it("POST /sort should return 400 if less than 2 elements in body-array", async () => {
+    const body = [1];
+    const response = await request(app).post("/sort").send(body);
+
+    await expectBadRequest(response);
+  });
+
   it("POST /sort should return 200 if all OK", async () => {
     const body = [2, 3, 1];
     const response = await request(app).post("/sort").send(body);
 
-    const foo = await BodySchema.parseAsync(body)
-      .then(() => true)
-      .catch((err) => console.log(err));
-
-    expect(foo).toBeTruthy();
+    await expect(BodySchema.parseAsync(body)).resolves.toEqual(body);
     expect(response.status).toBe(200);
     expect(response.body).toEqual([1, 2, 3]);
   });
