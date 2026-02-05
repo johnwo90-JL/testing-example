@@ -19,6 +19,7 @@ app.post("/sort", (req, res) => {
     BodySchema.parse(req.body);
     res.json(req.body.sort());
   } catch (err) {
+    console.error(err);
     res.sendStatus(400);
   }
 });

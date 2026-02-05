@@ -3,6 +3,19 @@ import request from "supertest";
 import app from "./index.js";
 import { BodySchema } from "./sort.body.schema.js";
 
+// Assertions
+
+async function expectBadRequest(response) {
+  await expect(
+    BodySchema.parseAsync((await response.request).body)
+  ).rejects.toThrow();
+
+  expect(response.status).toBe(400);
+  expect(response.body).toStrictEqual({});
+}
+
+// Tests
+
 describe("Express App", () => {
   it("should be defined", () => {
     expect(app).toBeDefined();
@@ -24,19 +37,14 @@ describe("Express App", () => {
 describe("Sorting endpoint", () => {
   it("POST /sort should return 400 if body is empty", async () => {
     const response = await request(app).post("/sort");
-    expect(response.status).toBe(400);
-    expect(response.body).toStrictEqual({});
+    await expectBadRequest(response);
   });
 
   it("POST /sort should return 400 if body is invalid", async () => {
     const response = await request(app).post("/sort").send({
       foo: "bar",
     });
-    expect(
-      await BodySchema.parseAsync((await response.request).body)
-    ).toThrow();
-    expect(response.status).toBe(400);
-    expect(response.body).toStrictEqual({});
+    await expectBadRequest(response);
   });
 
   it("POST /sort should return 200 if all OK", async () => {
